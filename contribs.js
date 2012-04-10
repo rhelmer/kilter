@@ -19,7 +19,6 @@ $(function() {
         }
         $.getJSON(commits_url, function(commits) {
             next = commits.meta.Link[0][0] + '&callback=?';
-            console.log(commits.meta.Link);
             contrib_data = {};
             collab_data = {};
             $.map(commits.data, function(c) {
@@ -28,35 +27,44 @@ $(function() {
                 if ('author' in c && c.author !== null) {
                     if ($.inArray(c.author.login, logins) == -1) {
                         if (commit_date in contrib_data) {
-                            contrib_data[commit_date] += 1;
+                            contrib_data[commit_date]['count'] += 1;
+                            contrib_data[commit_date]['info'].push(c.author.login);
                         } else {
-                            contrib_data[commit_date] = 1;
+                            contrib_data[commit_date] = {};
+                            contrib_data[commit_date]['count'] = 1;
+                            contrib_data[commit_date]['info'] = [c.author.login];
                         }
                     } else {
                         if (commit_date in collab_data) {
-                            collab_data[commit_date] += 1;
+                            collab_data[commit_date]['count'] += 1;
+                            collab_data[commit_date]['info'].push(c.author.login);
                         } else {
-                            collab_data[commit_date] = 1;
+                            collab_data[commit_date] = {};
+                            collab_data[commit_date]['count'] = 1;
+                            collab_data[commit_date]['info'] = [c.author.login];
                         }
                     }
                 } else {
                     if (commit_date in contrib_data) {
-                        contrib_data[commit_date] += 1;
+                        contrib_data[commit_date]['count'] += 1;
+                        contrib_data[commit_date]['info'].push(c.commit.committer.email);
                     } else {
-                        contrib_data[commit_date] = 1;
+                        contrib_data[commit_date] = {};
+                        contrib_data[commit_date]['count'] = 1;
+                        contrib_data[commit_date]['info'] = [c.commit.committer.email];
                     }
                 }
             });
 
             contribs = [];
             for (var i in contrib_data) {
-                contribs.push([i, contrib_data[i]]);
+                contribs.push([i, contrib_data[i]['count'], contrib_data[i]['info']]);
             }
             contribs.sort(function(p, q) { return p - q; });
             collabs = [];
 
             for (var i in collab_data) {
-                collabs.push([i, collab_data[i]]);
+                collabs.push([i, collab_data[i]['count'], collab_data[i]['info']]);
             }
             collabs.sort(function(p, q) { return p - q; });
 
@@ -93,11 +101,20 @@ $(function() {
                         var x = item.datapoint[0].toFixed(2),
                             y = item.datapoint[1].toFixed(2);
                         
-                        showTooltip(item.pageX, item.pageY,
-                                    item.series.label + " of " + x + " = " + y);
+                        unique = {};
+                        $.map(item.series.data, function(d) {
+                            $.each(d[2], function(val, user) {
+                                unique[user] = 1;
+                            });
+                            return unique;
+                        });
+
+                        var keys = []; for (var k in unique) keys.push(k);
+
+                        showTooltip(item.pageX, item.pageY, keys);
+
                     }
                 }
-                console.log('hover');
             });
         });
     },
@@ -111,7 +128,6 @@ $(function() {
     
             getCommits(logins);
             $('#previous').bind('click', function() {
-                console.log(next);
                 getCommits(logins, next);
             });
         });
