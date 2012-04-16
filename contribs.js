@@ -20,7 +20,7 @@ $(function() {
         $.getJSON(commits_url, function(commits) {
             next = commits.meta.Link[0][0] + '&callback=?';
             contrib_data = {};
-            collab_data = {};
+            maintainer_data = {};
             $.map(commits.data, function(c) {
                 var commit_date = floorDate(
                     new Date(c.commit.committer.date)).getTime();
@@ -35,13 +35,13 @@ $(function() {
                             contrib_data[commit_date]['info'] = [c.author.login];
                         }
                     } else {
-                        if (commit_date in collab_data) {
-                            collab_data[commit_date]['count'] += 1;
-                            collab_data[commit_date]['info'].push(c.author.login);
+                        if (commit_date in maintainer_data) {
+                            maintainer_data[commit_date]['count'] += 1;
+                            maintainer_data[commit_date]['info'].push(c.author.login);
                         } else {
-                            collab_data[commit_date] = {};
-                            collab_data[commit_date]['count'] = 1;
-                            collab_data[commit_date]['info'] = [c.author.login];
+                            maintainer_data[commit_date] = {};
+                            maintainer_data[commit_date]['count'] = 1;
+                            maintainer_data[commit_date]['info'] = [c.author.login];
                         }
                     }
                 } else {
@@ -61,15 +61,15 @@ $(function() {
                 contribs.push([i, contrib_data[i]['count'], contrib_data[i]['info']]);
             }
             contribs.sort(function(p, q) { return p - q; });
-            collabs = [];
+            maintainers = [];
 
-            for (var i in collab_data) {
-                collabs.push([i, collab_data[i]['count'], collab_data[i]['info']]);
+            for (var i in maintainer_data) {
+                maintainers.push([i, maintainer_data[i]['count'], maintainer_data[i]['info']]);
             }
-            collabs.sort(function(p, q) { return p - q; });
+            maintainers.sort(function(p, q) { return p - q; });
 
             flot_data = [
-                { 'label': 'Collaborators', 'data': collabs },
+                { 'label': 'Maintainers', 'data': maintainers },
                 { 'label': 'Contributors', 'data': contribs },
             ];
 
@@ -121,11 +121,11 @@ $(function() {
         });
     },
     getLogins = function(github_user, github_repo) {
-        collab_url = github_base_url + '/repos/' + github_user + '/'
+        maintainer_url = github_base_url + '/repos/' + github_user + '/'
                          + github_repo + '/collaborators?callback=?',
-        $.getJSON(collab_url, function(collabs) {
-            logins = $.map(collabs.data, function(collab) {
-                return collab.login;
+        $.getJSON(maintainer_url, function(maintainers) {
+            logins = $.map(maintainers.data, function(maintainer) {
+                return maintainer.login;
             });
     
             getCommits(logins);
