@@ -69,8 +69,8 @@ $(function() {
             collabs.sort(function(p, q) { return p - q; });
 
             flot_data = [
-                { 'label': 'Contributors', 'data': contribs },
                 { 'label': 'Collaborators', 'data': collabs },
+                { 'label': 'Contributors', 'data': contribs },
             ];
 
             opts = {
@@ -79,9 +79,11 @@ $(function() {
                 },
                 series: {
                     stack: true,
-                    bars: { show: 'True',
-                            barWidth: 24 * 60 * 60 * 1000,
-                            lineWidth: 0
+                    bars: { 
+                        show: true,
+                        barWidth: 24 * 60 * 60 * 500,
+                        align: 'center',
+                        //lineWidth: 0
                     },
                 },
                 grid: {
